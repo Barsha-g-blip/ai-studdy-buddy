@@ -1,14 +1,16 @@
-import os
-from dotenv import load_dotenv
-from flask import Flask, render_template, request, jsonify
+import streamlit as st
 from groq import Groq
 
-load_dotenv()
+# Initialize Groq client using Streamlit secrets
+client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 
-app = Flask(__name__)
+st.set_page_config(page_title="AI Study Buddy", page_icon="📚")
 
-client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+st.title("📚 AI Study Buddy")
+st.write("Ask any academic question and get instant help!")
 
+# User input
+user_input = st.text_input("Enter your question:")
 
 def ask_ai(prompt):
     try:
@@ -24,18 +26,12 @@ def ask_ai(prompt):
     except Exception as e:
         return f"Error: {str(e)}"
 
-
-@app.route("/")
-def home():
-    return render_template("index.html")
-
-
-@app.route("/ask", methods=["POST"])
-def ask():
-    user_input = request.json["message"]
-    reply = ask_ai(user_input)
-    return jsonify({"reply": reply})
-
-
-if __name__ == "__main__":
-    app.run(debug=True)
+# When user submits question
+if st.button("Ask"):
+    if user_input:
+        with st.spinner("Thinking..."):
+            reply = ask_ai(user_input)
+        st.success("Answer:")
+        st.write(reply)
+    else:
+        st.warning("Please enter a question.")
